@@ -183,7 +183,7 @@ module Android
     end
 
     def metadata
-      metadata = @doc.root.attributes.select{ |k| !@doc.root.namespaces.member?(k) }
+      metadata = @doc.root.attributes.select!{ |k| !@doc.root.namespaces.member?(k) }
       metadata
     end
 
