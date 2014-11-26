@@ -16,7 +16,7 @@ module Android
       # @return [Boolean]
       def self.valid?(elem)
         TYPES.include?(elem.name.downcase)
-      rescue => e
+      rescue
         false
       end
 
@@ -209,8 +209,10 @@ module Android
     end
 
     # @return [Integer] minSdkVersion in uses element
+    # @return 1 when /manifest/uses-sdk is not found cf
+    # http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     def min_sdk_ver
-      @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion'].to_i
+      @doc.elements['/manifest/uses-sdk'] ? @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion'].to_i : 1
     end
 
     # application label
