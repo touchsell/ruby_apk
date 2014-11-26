@@ -182,6 +182,11 @@ module Android
       components
     end
 
+    def metadata
+      metadata = @doc.root.attributes.select{ |k| !@doc.root.namespaces.member?(k) }
+      metadata
+    end
+
     # application package name
     # @return [String]
     def package_name
@@ -209,10 +214,16 @@ module Android
     end
 
     # @return [Integer] minSdkVersion in uses element
-    # @return 1 when /manifest/uses-sdk is not found cf
-    # http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
+    # @return 1 when /manifest/uses-sdk is not found or attributes does not
+    # exist cf http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     def min_sdk_ver
-      @doc.elements['/manifest/uses-sdk'] ? @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion'].to_i : 1
+      return 1 unless  @doc.elements['/manifest/uses-sdk']
+      (version = @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion']) ? version : 1
+    end
+
+    def target_sdk_ver
+      return 1 unless  @doc.elements['/manifest/uses-sdk']
+      (version = @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion']) ? version : min_sdk_ver
     end
 
     # application label
