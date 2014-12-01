@@ -157,8 +157,8 @@ describe Android::Manifest do
       it { should be_kind_of Array }
       it { subject[0].should be_kind_of Android::Manifest::Component }
     end
-    describe "#package_name" do
-      subject { manifest.package_name }
+    describe "#package" do
+      subject { manifest.package}
       it { should == "example.app.sample" }
     end
     describe "#version_code" do
@@ -169,12 +169,12 @@ describe Android::Manifest do
       subject { manifest.version_name}
       it { should == "1.0.1-malware2" }
     end
-    describe "#min_sdk_ver" do
-      subject { manifest.min_sdk_ver}
+    describe "#min_sdk_version" do
+      subject { manifest.min_sdk_version}
       it { should == 10 }
     end
-    describe "#target_sdk_ver" do
-      subject { manifest.target_sdk_ver}
+    describe "#target_sdk_version" do
+      subject { manifest.target_sdk_version}
       it { should == 10 }
     end
     describe "#label" do
