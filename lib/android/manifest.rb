@@ -171,25 +171,14 @@ module Android
       @rsc = rsc
     end
 
-    # need to check that element exists...
+    # return some metadata about the apk
     def metadata
       metadata = {}
-      metadata['manifest'] = get_manifest_hash
+      metadata['manifest'] = ManifestTag.new(self).hash
       metadata['application'] = get_application_hash
       metadata ['uses-sdk'] = get_uses_sdk_hash
       metadata['uses-permission'] = use_permissions
       metadata
-    end
-
-    def extract_attributes_of_element(element_name)
-      elem = @doc.elements[element_name]
-      result = {}
-      return result unless elem
-      elem.attributes.each_attribute do |attr|
-        value = attr.value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ ? @rsc.find(attr.value) : attr.value
-        result[element_name]=[attr.name,value,attr.namespace]
-      end
-      result
     end
 
     # used permission array
@@ -204,7 +193,7 @@ module Android
     end
 
     # created permission
-    # @return [Array<String>] permission names
+    # TODO
     def permissions
       # TODO
       nil
@@ -222,86 +211,6 @@ module Android
       components
     end
 
-    ##########################  HELPERS
-    def get_attributes_value(element_name, name, *args)
-      options = args.extract_options!
-      element = @doc.elements[element_name]
-      unless element
-        return options[:default]
-      end
-      value = element.attributes[name]
-      unless  !@rsc.nil? && value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/
-        return value || options[:default]
-      end
-      if options[:find_option]
-        @rsc.nil? ? nil : @rsc.find(value, options[:find_option])
-      else
-        @rsc.nil? ? nil : @rsc.find(value)
-      end
-    end
-
-    ########################## ROOT ELEMENT
-    ROOT = '/manifest'
-
-    # return a hash with the options of the manifest element
-    def get_manifest_hash
-      result = {}
-      result['package'] = package
-      result['versionCode'] = version_code
-      result['versionName'] = version_name
-      result
-    end
-
-    # manifest namespace
-    # @return [string]
-    # SHOULD ALWAYS BE "http://schemas.android.com/apk/res/android"
-    def xmlns_android
-      get_attributes_value(ROOT, 'android')
-    end
-
-    # package name
-    # @return [string]
-    def package
-      get_attributes_value(ROOT, 'package')
-    end
-
-    # sharedUserId
-    # @return [string]
-    # set a particuliar userId to the application
-    # can be used to share data between apps with same userID
-    # certificates should be the same
-    def shared_user_id
-      get_attributes_value(ROOT, 'sharedUserId')
-    end
-
-    # sharedUserLabel
-    # @return [string]
-    def shared_user_label
-      get_attributes_value(ROOT, 'sharedUserLabel')
-    end
-
-    # versionCode
-    # @return [Integer]
-    def version_code
-      get_attributes_value(ROOT, 'versionCode').to_i
-    end
-
-    # versionName
-    # @return [string]
-    def version_name(lang = nil)
-      unless lang
-        get_attributes_value(ROOT, 'versionName')
-      else
-        get_attributes_value(ROOT, 'versionName', :find_option => {:lang => lang})
-      end
-    end
-
-    # installLocation option
-    # TODO
-    def install_Location
-      # TODO
-      nil
-    end
 
     ########################## APPLICATION ELEMENT
     APPLICATION = '/manifest/application'
@@ -340,21 +249,21 @@ module Android
     # @return [TrueClass | FalseClass]
     # default value is false
     def allow_task_reparenting
-      to_b get_attributes_value(APPLICATION, 'allowTaskReparenting', :default => false)
+      to_b get_attribute_value(APPLICATION, 'allowTaskReparenting', :default => false)
     end
 
     # application allowBackup option
     # @return [TrueClass | FalseClass]
     # default value is true
     def allow_backup
-      to_b get_attributes_value(APPLICATION, 'allowBackup', :default => true)
+      to_b get_attribute_value(APPLICATION, 'allowBackup', :default => true)
     end
 
     # application backupAgent option
     # @return [string]
     # no default value
     def backup_agent
-      attr = get_attributes_value(APPLICATION, 'backupAgent')
+      attr = get_attribute_value(APPLICATION, 'backupAgent')
       attr =~ /^\./ ? "#{package}+#{attr}" : attr
     end
 
@@ -362,35 +271,35 @@ module Android
     # @return [string]
     # no default value
     def banner
-      get_attributes_value(APPLICATION, 'banner')
+      get_attribute_value(APPLICATION, 'banner')
     end
 
     # application debuggablee option
     # @return [TrueClass | FalseClass]
     # default value is false
     def debuggable
-      to_b get_attributes_value(APPLICATION, 'debuggable', :default => false)
+      to_b get_attribute_value(APPLICATION, 'debuggable', :default => false)
     end
 
     # application description option
     # @return [string]
     # no default value
     def description
-      get_attributes_value(APPLICATION, 'description')
+      get_attribute_value(APPLICATION, 'description')
     end
 
     # application enabled option
     # @return [TrueClass | FalseClass]
     # default value is true
     def enabled
-      to_b get_attributes_value(APPLICATION, 'enabled', :default => true)
+      to_b get_attribute_value(APPLICATION, 'enabled', :default => true)
     end
 
     # application hasCode option
     # @return [TrueClass | FalseClass]
     # default value is true
     def has_code
-      to_b get_attributes_value(APPLICATION, 'hadCode', :default => true)
+      to_b get_attribute_value(APPLICATION, 'hadCode', :default => true)
     end
 
     # application hardwareAccelerated option
@@ -398,9 +307,9 @@ module Android
     # default value is true if minSdkVersion or targetSdkVersion > 13 or false
     def hardware_accelerated
       if min_sdk_version > 13 || target_sdk_version > 13
-        to_b get_attributes_value(APPLICATION, 'hardwareAccelerated', :default => true)
+        to_b get_attribute_value(APPLICATION, 'hardwareAccelerated', :default => true)
       else
-        to_b get_attributes_value(APPLICATION, 'hardwareAccelerated', :default => false)
+        to_b get_attribute_value(APPLICATION, 'hardwareAccelerated', :default => false)
       end
     end
 
@@ -408,42 +317,42 @@ module Android
     # @return [Array] of strings
     # no default value
     def icon
-      get_attributes_value(APPLICATION, 'icon')
+      get_attribute_value(APPLICATION, 'icon')
     end
 
     # application isGame option
     # @return [TrueClass | FalseClass]
     # default value is false
     def is_game
-      to_b get_attributes_value(APPLICATION, 'isGame', :default => false)
+      to_b get_attribute_value(APPLICATION, 'isGame', :default => false)
     end
 
     # application killAfterRestore option
     # @return [TrueClass | FalseClass]
     # default value is true
     def kill_after_restore
-      to_b get_attributes_value(APPLICATION, 'killAfterRestore', :default => true)
+      to_b get_attribute_value(APPLICATION, 'killAfterRestore', :default => true)
     end
 
     # application largeHeap option
     # @return [TrueClass | FalseClass]
     # default value is false
     def large_heap
-      to_b get_attributes_value(APPLICATION, 'largeHeap', :default => false)
+      to_b get_attribute_value(APPLICATION, 'largeHeap', :default => false)
     end
 
     # application label
     # @return [string]
     # no default value
     def label
-      get_attributes_value(APPLICATION, 'label')
+      get_attribute_value(APPLICATION, 'label')
     end
 
     # application logo
     # @return [string]
     # no default value
     def logo
-      get_attributes_value(APPLICATION, 'logo')
+      get_attribute_value(APPLICATION, 'logo')
     end
 
     # application manageSpaceActivity
@@ -457,7 +366,7 @@ module Android
     # @return [string]
     # no default value - default Application class is used
     def name
-      get_attributes_value(APPLICATION, 'name')
+      get_attribute_value(APPLICATION, 'name')
     end
 
     # application permission set an application wide permission needed to use
@@ -465,14 +374,14 @@ module Android
     # @return [string]
     # no default value
     def permission
-      get_attributes_value(APPLICATION, 'permission')
+      get_attribute_value(APPLICATION, 'permission')
     end
 
     # application persistence option
     # @return [TrueClass | FalseClass]
     # default value is false
     def persistent
-      to_b get_attributes_value(APPLICATION, 'persistent', :default => false)
+      to_b get_attribute_value(APPLICATION, 'persistent', :default => false)
     end
 
     # application process option
@@ -486,7 +395,7 @@ module Android
     # @return [TrueClass | FalseClass]
     # default value is false
     def return_any_version
-      to_b get_attributes_value(APPLICATION, 'restoreAnyVersion', :default => false)
+      to_b get_attribute_value(APPLICATION, 'restoreAnyVersion', :default => false)
     end
 
     # application requiredAccountType
@@ -509,9 +418,9 @@ module Android
     # default value is false if targetSdkVersion <= 16 else default is true
     def supports_rtl
       if target_sdk_version > 16
-        to_b get_attributes_value(APPLICATION, 'supportsRtl', :default => true)
+        to_b get_attribute_value(APPLICATION, 'supportsRtl', :default => true)
       else
-        to_b get_attributes_value(APPLICATION, 'supportsRtl', :default => false)
+        to_b get_attribute_value(APPLICATION, 'supportsRtl', :default => false)
       end
     end
 
@@ -526,7 +435,7 @@ module Android
     # @return [TrueClass | FalseClass]
     # default value is false
     def test_only
-      to_b get_attributes_value(APPLICATION, 'testOnly', :default => false)
+      to_b get_attribute_value(APPLICATION, 'testOnly', :default => false)
     end
 
     # application theme
@@ -540,20 +449,20 @@ module Android
     # @return [string]
     # default is "none"
     def ui_options
-      get_attributes_value(APPLICATION, 'iuOptions', :default => "none")
+      get_attribute_value(APPLICATION, 'iuOptions', :default => "none")
     end
 
     # application vmSafeMode option
     # @return [TrueClass | FalseClass]
     # default value is false
     def vm_safe_mode
-      to_b get_attributes_value(APPLICATION, 'vmSafeMode', :default => false)
+      to_b get_attribute_value(APPLICATION, 'vmSafeMode', :default => false)
     end
 
     ##################################################################
     #################################### uses-sdk ELEMENT
     USES_SDK = '/manifest/uses-sdk'
-    
+
     # 
     def get_uses_sdk_hash
       result={}
@@ -568,43 +477,20 @@ module Android
     # @return 1 when /manifest/uses-sdk is not found or attributes does not
     # exist cf http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     def min_sdk_version
-      get_attributes_value(USES_SDK, 'minSdkVersion', :default => 1).to_i
+      get_attribute_value(USES_SDK, 'minSdkVersion', :default => 1).to_i
     end
 
     # @return [Integer] targetSdkVersion in uses-sdk element
     # @return min_sdk_version when the attributes does not exist.
     def target_sdk_version
-      get_attributes_value(USES_SDK, 'targetSdkVersion', :default => min_sdk_version).to_i
+      get_attribute_value(USES_SDK, 'targetSdkVersion', :default => min_sdk_version).to_i
     end
 
     # @return [Integer] maxSdkVersion in uses-sdk element
     # should not be used according to official documentation at
     # http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     def max_sdk_version
-      get_attributes_value(USES_SDK, 'maxSdkVersion', :default => 1).to_i
-    end
-
-    # application label
-    # @param [String] lang language code like 'ja', 'cn', ...
-    # @return [String] application label string(if resouce is provided), or label resource id
-    # @return [nil] when label is not found
-    # @since 0.5.1
-    def label(lang=nil)
-      label = @doc.elements['/manifest/application'].attributes['label']
-      if label.nil?
-        # application element has no label attributes.
-        # so looking for activites that has label attribute.
-        activities = @doc.elements['/manifest/application'].find{|e| e.name == 'activity' && !e.attributes['label'].nil? }
-        label = activities.nil? ? nil : activities.first.attributes['label']
-      end
-      unless @rsc.nil?
-        if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ label
-          opts = {}
-          opts[:lang] = lang unless lang.nil?
-          label = @rsc.find(label, opts)
-        end
-      end
-      label
+      get_attribute_value(USES_SDK, 'maxSdkVersion', :default => 1).to_i
     end
 
     # ##############################################################
