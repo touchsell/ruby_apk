@@ -173,6 +173,10 @@ describe Android::Manifest do
       subject { manifest.min_sdk_ver}
       it { should == 10 }
     end
+    describe "#target_sdk_ver" do
+      subject { manifest.target_sdk_ver}
+      it { should == 10 }
+    end
     describe "#label" do
       subject { manifest.label }
       it { should == "@0x7f040001" }

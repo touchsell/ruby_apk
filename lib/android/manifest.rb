@@ -151,6 +151,7 @@ module Android
     #
     # @return [REXML::Document] manifest xml
     attr_reader :doc
+    attr_reader :rsc
 
     # @param [String] data binary data of AndroidManifest.xml
     def initialize(data, rsc=nil)
@@ -182,11 +183,43 @@ module Android
       components
     end
 
+    # need to check that element exists...
     def metadata
-      metadata = @doc.root.attributes.select!{ |k| !@doc.root.namespaces.member?(k) }
+      metadata = {}
+      # get root node
+      # xmlns, package, sharedUserId, sharedUserLabel, verisonCode version Name
+      # installLocation
+      # TODO take care of default values
+      puts extract_attributes_of_element('/manifest')
+      metadata.merge!(extract_attributes_of_element('/manifest'))
+      metadata.merge!(extract_attributes_of_element('/manifest/application'))
+      metadata.merge!(extract_attributes_of_element('/manifest/uses-sdk'))
+      metadata.merge!(extract_attributes_of_element('/manifest/compatible-screen'))
+      # metadata.merge(extract_attributes_of_element('/manifest/application'))
+      # metadata.merge(extract_attributes_of_element('/manifest/application'))
+      # metadata.merge(extract_attributes_of_element('/manifest/application'))
+      # permission
+      # permission group
+      # pernission tree
+      # support-gl-texture
+      # supports-screen
+      # uses-configuration
+      # uses-feature
+      # uses-library
+      # uses-permission
       metadata
     end
 
+    def extract_attributes_of_element(element_name)
+      elem = @doc.elements[element_name]
+      result = {}
+      return result unless elem
+      elem.attributes.each_attribute do |attr|
+        value = attr.value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ ? @rsc.find(attr.value) : attr.value
+        result[attr.name]=[value,attr.namespace]
+      end
+      result
+    end
     # application package name
     # @return [String]
     def package_name
@@ -218,12 +251,12 @@ module Android
     # exist cf http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     def min_sdk_ver
       return 1 unless  @doc.elements['/manifest/uses-sdk']
-      (version = @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion']) ? version : 1
+      (version = @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion']) ? version.to_i : 1
     end
 
     def target_sdk_ver
       return 1 unless  @doc.elements['/manifest/uses-sdk']
-      (version = @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion']) ? version : min_sdk_ver
+      (version = @doc.elements['/manifest/uses-sdk'].attributes['targetSdkVersion']) ? version.to_i : min_sdk_ver
     end
 
     # application label
