@@ -172,25 +172,32 @@ module Android
     end
 
     # return some metadata about the apk
-    def metadata
+    def metadata(lang=nil)
       metadata = {}
-      metadata['manifest'] = manifest_tag.attr
-      metadata ['uses-sdk'] = uses_sdk_tag.attr
-      metadata['application'] = application_tag.attr
+      metadata['manifest'] = manifest_tag
+      metadata['uses-sdk'] = uses_sdk_tag
+      metadata['application'] = application_tag
+      metadata['application'][:label] = label && label(lang)
       metadata['uses-permission'] = use_permissions
       metadata
     end
 
+    # returns a populated hash for the ManifestTag of the manifest with
+    # default values for fields not in the manifest
     def manifest_tag
-      @manifest_tag ||= ManifestTag.new(self)
+      @manifest_tag ||= ManifestTag.new(self).attributes
     end
 
+    # returns a populated hash for the ApplicationTag of the manifest with
+    # default values for field not in the manifest
     def application_tag
-      @application_tag ||= ApplicationTag.new(self)
+      @application_tag ||= ApplicationTag.new(self).attributes
     end
 
+    # returns a populated hash for the UsesSdkTag of the manifest with
+    # default values for field not in the manifest.
     def uses_sdk_tag
-      @uses_sdk_tag ||= UsesSdkTag.new(self)
+      @uses_sdk_tag ||= UsesSdkTag.new(self).attributes
     end
 
     # used permission array
@@ -222,6 +229,30 @@ module Android
       end
       components
     end
+
+    # application label
+    # @param [String] lang language code like 'ja', 'cn', ...
+    # @return [String] application label string(if resouce is provided), or label resource id
+    # @return [nil] when label is not found
+    # @since 0.5.1
+    def label(lang=nil)
+      label = application_tag['label']
+      if label.nil?
+        # application element has no label attributes.
+        # so looking for activites that has label attribute.
+        activities = @doc.elements['/manifest/application'].select{|e| e.name == 'activity' && !e.attributes['label'].nil? }
+        label = activities.nil? ? nil : activities.first.attributes['label']
+      end
+      unless @rsc.nil?
+        if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ label
+          opts = {}
+          opts[:lang] = lang unless lang.nil?
+          label = @rsc.find(label, opts)
+        end
+      end
+      label
+    end
+
     # return xml as string format
     # @param [Integer] indent size(bytes)
     # @return [String] raw xml string
