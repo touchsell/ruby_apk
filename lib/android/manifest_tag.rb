@@ -1,8 +1,8 @@
 module Android
   class ManifestTag < GenericTag
-    ROOT = '/manifest'
+    MANIFEST_TAG = '/manifest'
     def initialize(manifest)
-      super(manifest, ROOT)
+      super(manifest, MANIFEST_TAG)
       @attr['package'] = package
       @attr['versionCode'] = version_code
       @attr['versionName'] = version_name
@@ -15,13 +15,13 @@ module Android
     # @return [string]
     # SHOULD ALWAYS BE "http://schemas.android.com/apk/res/android"
     def xmlns_android
-      get_attribute_value(ROOT, 'android')
+      get_attribute_value(MANIFEST_TAG, 'android')
     end
 
     # package name
     # @return [string]
     def package
-      get_attribute_value(ROOT, 'package')
+      get_attribute_value(MANIFEST_TAG, 'package')
     end
 
     # sharedUserId
@@ -30,28 +30,28 @@ module Android
     # can be used to share data between apps with same userID
     # certificates should be the same
     def shared_user_id
-      get_attribute_value(ROOT, 'sharedUserId')
+      get_attribute_value(MANIFEST_TAG, 'sharedUserId')
     end
 
     # sharedUserLabel
     # @return [string]
     def shared_user_label
-      get_attribute_value(ROOT, 'sharedUserLabel')
+      get_attribute_value(MANIFEST_TAG, 'sharedUserLabel')
     end
 
     # versionCode
     # @return [Integer]
     def version_code
-      get_attribute_value(ROOT, 'versionCode').to_i
+      get_attribute_value(MANIFEST_TAG, 'versionCode').to_i
     end
 
     # versionName
     # @return [string]
     def version_name(lang = nil)
       unless lang
-        get_attribute_value(ROOT, 'versionName')
+        get_attribute_value(MANIFEST_TAG, 'versionName')
       else
-        get_attribute_value(ROOT, 'versionName', :find_option => {:lang => lang})
+        get_attribute_value(MANIFEST_TAG, 'versionName', :find_option => {:lang => lang})
       end
     end
 

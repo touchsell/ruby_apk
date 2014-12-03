@@ -5,6 +5,9 @@ class Array
 end
 
 def to_b(s)
+  if s.class == TrueClass || s.class == FalseClass
+    return s
+  end
   !!(s =~ /^(true|t|yes|y|1)$/i)
 end
 
