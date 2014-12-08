@@ -4,7 +4,7 @@ module Android
 
     define_attribute :allow_task_reparenting, :alias => :allowTaskReparenting, :default => false, :type => :boolean
     define_attribute :allow_backup, :alias => :allowBackup, :default => true, :type => :boolean
-    define_attribute :backup_agent, :alias =>:backupAgent, :lambda => lambda {|application_tag, value| value =~ /^\./ ? "#{application_tag.manifest.manifest_tag['package']}+#{value}" : value}
+    define_attribute :backup_agent, :alias =>:backupAgent, :lambda => lambda {|application_tag, value| value =~ /^\./ ? "#{application_tag.manifest.manifest_tag[:package]}#{value}" : value}
     define_attribute :banner
     define_attribute :debuggable, :default => false, :type => :boolean
     define_attribute :description
