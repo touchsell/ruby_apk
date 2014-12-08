@@ -25,7 +25,7 @@ module Android
       value = value || options[:default]
       if options[:lambda]
         value = options[:lambda].call(self, value)  if options[:default] != :lambda
-        value = options[:lambda].call self          if options[:default] == :lambda
+        value = options[:lambda].call self          if options[:default] == :lambda and value ==:lambda
       end
       value = self.class.to_b(value) if options[:type] == :boolean
       value = value.to_i if options[:type] == :integer

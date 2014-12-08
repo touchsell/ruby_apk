@@ -14,3 +14,7 @@ group :development do
   gem 'redcarpet', '~> 3.2'
   gem 'simplecov', '~> 0'   , require: false
 end
+
+group :development, :test do
+  gem 'pry'
+end
