@@ -154,7 +154,7 @@ describe Android::Manifest do
 
     describe "#components" do
       subject { manifest.components }
-      it { should be_kind_of Array }
+      it { should be_instance_of Array }
       it { subject[0].should be_kind_of Android::Manifest::Component }
     end
     # describe "#package" do

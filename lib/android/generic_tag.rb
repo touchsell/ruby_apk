@@ -7,26 +7,21 @@ module Android
 
     def get_attribute_value(element_name, name, options={})
       element = @manifest.doc.elements[element_name]
-      unless element
-        return return_value(nil, options)
-      end
+      return finalize_value(nil, options) unless element
+
       value = element.attributes[name]
-      unless  !@manifest.rsc.nil? && !!(value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/)
-        return return_value(value, options)
-      end
-      if options[:find_option]
-         @manifest.rsc.nil? ? nil : @manifest.rsc.find(value, options[:find_option])
-      else
-        @manifest.rsc.nil? ? nil : @manifest.rsc.find(value)
-      end
+      return finalize_value(value, options) unless value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/
+      return finalize_value(value, options) unless @manifest.rsc
+
+      options.select! {|k,v| k == :find_option}
+      return @manifest.rsc.find(value, options)
     end
 
-    def return_value(value, options)
+    def finalize_value(value, options)
       value = value || options[:default]
-      if options[:lambda]
-        value = options[:lambda].call(self, value)  if options[:default] != :lambda
-        value = options[:lambda].call self          if options[:default] == :lambda and value ==:lambda
-      end
+      value = value.call self if value.is_a? Proc
+      value = options[:value].call(self,value) if options[:value]
+
       value = self.class.to_b(value) if options[:type] == :boolean
       value = value.to_i if options[:type] == :integer
 
@@ -60,7 +55,6 @@ module Android
     end
 
     def attributes
-      # par exemple
       @attributes ||= Hash[self.class.attr_definitions.map { |k,opts| [k, __send__(k)] }]
     end
   end
