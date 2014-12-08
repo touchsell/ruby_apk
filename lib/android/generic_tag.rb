@@ -22,6 +22,7 @@ module Android
     end
 
     def return_value(value, options)
+      value = value || options[:default]
       if options[:lambda]
         value = options[:lambda].call(self, value)  if options[:default] != :lambda
         value = options[:lambda].call self          if options[:default] == :lambda
@@ -41,7 +42,7 @@ module Android
         return true  if %w(true yes t 1).include? value
         return false if %w(false no f 0).include? value
         return value
-      else value
+      else value 
       end
     end
 
