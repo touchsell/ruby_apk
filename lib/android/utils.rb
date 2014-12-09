@@ -1,4 +1,3 @@
-
 module Android
   # Utility methods
   module Utils

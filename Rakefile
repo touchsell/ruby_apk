@@ -34,6 +34,10 @@ end
 
 task :default => :spec
 
+task :console do
+  exec "irb -r ruby_apk -I ./lib"
+end
+
 require 'yard'
 require 'yard/rake/yardoc_task'
 YARD::Rake::YardocTask.new do |t|

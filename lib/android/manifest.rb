@@ -151,6 +151,7 @@ module Android
     #
     # @return [REXML::Document] manifest xml
     attr_reader :doc
+    attr_reader :rsc
 
     # @param [String] data binary data of AndroidManifest.xml
     def initialize(data, rsc=nil)
@@ -159,15 +160,51 @@ module Android
       @rsc = rsc
     end
 
+    # return some metadata about the apk
+    def metadata(lang=nil)
+      metadata = {}
+      metadata['manifest'] = manifest_tag_attr
+      metadata['uses-sdk'] = uses_sdk_tag_attr
+      metadata['application'] = application_tag_attr
+      metadata['application'][:label] = label && label(lang)
+      metadata['uses-permission'] = use_permissions
+      metadata
+    end
+
+    # returns a populated hash for the ManifestTag of the manifest with
+    # default values for fields not in the manifest
+    def manifest_tag_attr
+      @manifest_tag ||= ManifestTag.new(self).attributes
+    end
+
+    # returns a populated hash for the ApplicationTag of the manifest with
+    # default values for field not in the manifest
+    def application_tag_attr
+      @application_tag ||= ApplicationTag.new(self).attributes
+    end
+
+    # returns a populated hash for the UsesSdkTag of the manifest with
+    # default values for field not in the manifest.
+    def uses_sdk_tag_attr
+      @uses_sdk_tag ||= UsesSdkTag.new(self).attributes
+    end
+
     # used permission array
     # @return [Array<String>] permission names
-    # @note return empty array when the manifest includes no use-parmission element
+    # @note return empty array when the manifest includes no use-permission element
     def use_permissions
       perms = []
       @doc.each_element('/manifest/uses-permission') do |elem|
         perms << elem.attributes['name']
       end
       perms.uniq
+    end
+
+    # created permission
+    # TODO
+    def permissions
+      # TODO
+      nil
     end
 
     # @return [Array<Android::Manifest::Component>] all components in apk
@@ -182,50 +219,17 @@ module Android
       components
     end
 
-    # application package name
-    # @return [String]
-    def package_name
-      @doc.root.attributes['package']
-    end
-
-    # application version code
-    # @return [Integer]
-    def version_code
-      @doc.root.attributes['versionCode'].to_i
-    end
-
-    # application version name
-    # @return [String]
-    def version_name(lang=nil)
-      vername = @doc.root.attributes['versionName']
-      unless @rsc.nil?
-        if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ vername
-          opts = {}
-          opts[:lang] = lang unless lang.nil?
-          vername = @rsc.find(vername, opts)
-        end
-      end
-      vername
-    end
-
-    # @return [Integer] minSdkVersion in uses element
-    # @return 1 when /manifest/uses-sdk is not found cf
-    # http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
-    def min_sdk_ver
-      @doc.elements['/manifest/uses-sdk'] ? @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion'].to_i : 1
-    end
-
     # application label
     # @param [String] lang language code like 'ja', 'cn', ...
     # @return [String] application label string(if resouce is provided), or label resource id
     # @return [nil] when label is not found
     # @since 0.5.1
     def label(lang=nil)
-      label = @doc.elements['/manifest/application'].attributes['label']
+      label = application_tag_attr['label']
       if label.nil?
         # application element has no label attributes.
         # so looking for activites that has label attribute.
-        activities = @doc.elements['/manifest/application'].find{|e| e.name == 'activity' && !e.attributes['label'].nil? }
+        activities = @doc.elements['/manifest/application'].select{|e| e.name == 'activity' && !e.attributes['label'].nil? }
         label = activities.nil? ? nil : activities.first.attributes['label']
       end
       unless @rsc.nil?

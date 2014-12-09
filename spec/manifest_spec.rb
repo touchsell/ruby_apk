@@ -154,25 +154,29 @@ describe Android::Manifest do
 
     describe "#components" do
       subject { manifest.components }
-      it { should be_kind_of Array }
+      it { should be_instance_of Array }
       it { subject[0].should be_kind_of Android::Manifest::Component }
     end
-    describe "#package_name" do
-      subject { manifest.package_name }
-      it { should == "example.app.sample" }
-    end
-    describe "#version_code" do
-      subject { manifest.version_code}
-      it { should == 101 }
-    end
-    describe "#version_name" do
-      subject { manifest.version_name}
-      it { should == "1.0.1-malware2" }
-    end
-    describe "#min_sdk_ver" do
-      subject { manifest.min_sdk_ver}
-      it { should == 10 }
-    end
+    # describe "#package" do
+      # subject { manifest.package}
+      # it { should == "example.app.sample" }
+    # end
+    # describe "#version_code" do
+      # subject { manifest.version_code}
+      # it { should == 101 }
+    # end
+    # describe "#version_name" do
+      # subject { manifest.version_name}
+      # it { should == "1.0.1-malware2" }
+    # end
+    # describe "#min_sdk_version" do
+      # subject { manifest.min_sdk_version}
+      # it { should == 10 }
+    # end
+    # describe "#target_sdk_version" do
+      # subject { manifest.target_sdk_version}
+      # it { should == 10 }
+    # end
     describe "#label" do
       subject { manifest.label }
       it { should == "@0x7f040001" }
