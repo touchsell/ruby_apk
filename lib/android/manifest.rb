@@ -174,9 +174,9 @@ module Android
     # return some metadata about the apk
     def metadata(lang=nil)
       metadata = {}
-      metadata['manifest'] = manifest_tag
-      metadata['uses-sdk'] = uses_sdk_tag
-      metadata['application'] = application_tag
+      metadata['manifest'] = manifest_tag_attr
+      metadata['uses-sdk'] = uses_sdk_tag_attr
+      metadata['application'] = application_tag_attr
       metadata['application'][:label] = label && label(lang)
       metadata['uses-permission'] = use_permissions
       metadata
@@ -184,19 +184,19 @@ module Android
 
     # returns a populated hash for the ManifestTag of the manifest with
     # default values for fields not in the manifest
-    def manifest_tag
+    def manifest_tag_attr
       @manifest_tag ||= ManifestTag.new(self).attributes
     end
 
     # returns a populated hash for the ApplicationTag of the manifest with
     # default values for field not in the manifest
-    def application_tag
+    def application_tag_attr
       @application_tag ||= ApplicationTag.new(self).attributes
     end
 
     # returns a populated hash for the UsesSdkTag of the manifest with
     # default values for field not in the manifest.
-    def uses_sdk_tag
+    def uses_sdk_tag_attr
       @uses_sdk_tag ||= UsesSdkTag.new(self).attributes
     end
 

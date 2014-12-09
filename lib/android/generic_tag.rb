@@ -13,18 +13,19 @@ module Android
       return finalize_value(value, options) unless value =~ /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/
       return finalize_value(value, options) unless @manifest.rsc
 
-      return @manifest.rsc.find(value, options.select {|k,v| k == :find_option})
+      return @manifest.rsc.find(value, options.select { |k,v| k == :find_option })
     end
 
     def finalize_value(value, options)
       value = value || options[:default]
       value = value.call(self) if value.is_a? Proc
-      value = options[:value].call(self,value) if options[:value]
+      value = options[:value].call(self, value) if options[:value]
 
-      value = self.class.to_b(value) if options[:type] == :boolean
-      value = value.to_i if options[:type] == :integer
-
-      return value
+      case options[:type]
+      when :boolean then self.class.to_b(value)
+      when :integer then value.to_i
+      else value
+      end
     end
 
     def self.to_b(value)
