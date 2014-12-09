@@ -6,8 +6,7 @@ module Android
                      :type => :integer
 
     define_attribute :target_sdk_version, :alias => :targetSdkVersion,
-                     :default  => lambda {|instance| instance.min_sdk_version},
-                     :type => :integer
+                     :default => :min_sdk_version.to_proc, :type => :integer
 
     define_attribute :max_sdk_version, :alias => :maxSdkVersion, :default => 0,
                      :type => :integer
