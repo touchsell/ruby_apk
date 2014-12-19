@@ -11,7 +11,7 @@ module Android
     define_attribute :backup_agent, :alias =>:backupAgent,
                      :value => ->(application_tag, value) { application_tag.backup_agent_value_helper(value) }
     def backup_agent_value_helper(value)
-      value =~ /^\./ ? "#{manifest.manifest_tag[:package]}#{value}" : value
+      value =~ /^\./ ? "#{manifest.manifest_tag_attr[:package]}#{value}" : value
     end
 
     define_attribute :banner

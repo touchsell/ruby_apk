@@ -174,19 +174,19 @@ module Android
     # returns a populated hash for the ManifestTag of the manifest with
     # default values for fields not in the manifest
     def manifest_tag_attr
-      @manifest_tag ||= ManifestTag.new(self).attributes
+      @manifest_tag_attr ||= ManifestTag.new(self).attributes
     end
 
     # returns a populated hash for the ApplicationTag of the manifest with
     # default values for field not in the manifest
     def application_tag_attr
-      @application_tag ||= ApplicationTag.new(self).attributes
+      @application_tag_attr ||= ApplicationTag.new(self).attributes
     end
 
     # returns a populated hash for the UsesSdkTag of the manifest with
     # default values for field not in the manifest.
     def uses_sdk_tag_attr
-      @uses_sdk_tag ||= UsesSdkTag.new(self).attributes
+      @uses_sdk_tag_attr ||= UsesSdkTag.new(self).attributes
     end
 
     # used permission array
