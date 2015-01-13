@@ -166,7 +166,7 @@ module Android
       metadata['manifest'] = manifest_tag_attr
       metadata['uses-sdk'] = uses_sdk_tag_attr
       metadata['application'] = application_tag_attr
-      metadata['application'][:label] = label && label(lang)
+      metadata['application'][:label] = label(lang)
       metadata['uses-permission'] = use_permissions
       metadata
     end
@@ -226,12 +226,6 @@ module Android
     # @since 0.5.1
     def label(lang=nil)
       label = application_tag_attr['label']
-      if label.nil?
-        # application element has no label attributes.
-        # so looking for activites that has label attribute.
-        activities = @doc.elements['/manifest/application'].select{|e| e.name == 'activity' && !e.attributes['label'].nil? }
-        label = activities.nil? ? nil : activities.first.attributes['label']
-      end
       unless @rsc.nil?
         if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ label
           opts = {}
