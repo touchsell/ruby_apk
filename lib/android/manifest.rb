@@ -166,7 +166,6 @@ module Android
       metadata['manifest'] = manifest_tag_attr
       metadata['uses-sdk'] = uses_sdk_tag_attr
       metadata['application'] = application_tag_attr
-      metadata['application'][:label] = label(lang)
       metadata['uses-permission'] = use_permissions
       metadata
     end
@@ -217,23 +216,6 @@ module Android
         end
       end
       components
-    end
-
-    # application label
-    # @param [String] lang language code like 'ja', 'cn', ...
-    # @return [String] application label string(if resouce is provided), or label resource id
-    # @return [nil] when label is not found
-    # @since 0.5.1
-    def label(lang=nil)
-      label = application_tag_attr['label']
-      unless @rsc.nil?
-        if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ label
-          opts = {}
-          opts[:lang] = lang unless lang.nil?
-          label = @rsc.find(label, opts)
-        end
-      end
-      label
     end
 
     # return xml as string format
