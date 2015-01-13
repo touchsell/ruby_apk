@@ -54,7 +54,7 @@ module Android
     end
 
     def attributes
-      @attributes ||= Hash[self.class.attr_definitions.map { |k,opts| [k, __send__(k)] }]
+      @attributes ||= Hash[self.class.attr_definitions.map { |k,opts| [k.to_s, __send__(k)] }]
     end
   end
 end

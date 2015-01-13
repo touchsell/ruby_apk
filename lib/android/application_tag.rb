@@ -11,7 +11,7 @@ module Android
     define_attribute :backup_agent, :alias =>:backupAgent,
                      :value => ->(application_tag, value) { application_tag.backup_agent_value_helper(value) }
     def backup_agent_value_helper(value)
-      value =~ /^\./ ? "#{manifest.manifest_tag_attr[:package]}#{value}" : value
+      value =~ /^\./ ? "#{manifest.manifest_tag_attr['package']}#{value}" : value
     end
 
     define_attribute :banner
@@ -24,7 +24,7 @@ module Android
                      :default => :hardware_accelerated_default.to_proc, :type => :boolean
     def hardware_accelerated_default
       uses_sdk_tag = manifest.uses_sdk_tag_attr
-      uses_sdk_tag[:min_sdk_version] > 13 || uses_sdk_tag[:target_sdk_version] > 13
+      uses_sdk_tag['min_sdk_version'].to_i > 13 || uses_sdk_tag['target_sdk_version'].to_i > 13
     end
 
     define_attribute :kill_after_restore, :alias => :killAfterRestore,
@@ -49,7 +49,7 @@ module Android
                      :default => :supports_rtl_default.to_proc, :type => :boolean
     def supports_rtl_default
       uses_sdk_tag = manifest.uses_sdk_tag_attr
-      uses_sdk_tag[:target_sdk_version] > 16
+      uses_sdk_tag['target_sdk_version'].to_i > 16
     end
 
     define_attribute :task_affinity, :alias => :taskAffinity #TODO
