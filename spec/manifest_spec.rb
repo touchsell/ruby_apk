@@ -177,22 +177,22 @@ describe Android::Manifest do
       # subject { manifest.target_sdk_version}
       # it { should == 10 }
     # end
-    describe "#label" do
-      subject { manifest.label }
-      it { should == "@0x7f040001" }
+    # describe "#label" do
+      # subject { manifest.label }
+      # it { should == "@0x7f040001" }
 
-      context "with real apk file" do
-        let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }
-        let(:apk) { Android::Apk.new(tmp_path) }
-        let(:manifest){ apk.manifest }
-        subject { manifest.label }
-        it { should eq 'Sample' }
-        context 'when assign lang code' do
-          subject { manifest.label('ja') }
-          it { should eq 'Sample' }
-        end
-      end
-    end
+      # context "with real apk file" do
+        # let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }
+        # let(:apk) { Android::Apk.new(tmp_path) }
+        # let(:manifest){ apk.manifest }
+        # subject { manifest.label }
+        # it { should eq 'Sample' }
+        # context 'when assign lang code' do
+          # subject { manifest.label('ja') }
+          # it { should eq 'Sample' }
+        # end
+      # end
+    # end
     describe "#doc" do
       subject { manifest.doc }
       it { should be_instance_of REXML::Document }
