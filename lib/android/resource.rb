@@ -143,6 +143,8 @@ module Android
             end
           end
           return drawables
+        when 'attr'
+          binding.pry
         else
           nil
         end
@@ -442,9 +444,68 @@ module Android
       private :parse
     end
 
+    class XMLChunkHeader < ChunkHeader
+      attr_reader :line_number, :comment_id, :ns_id, :name_id
+      def parse
+        super
+        @line_number = read_int32
+        @comment_id = read_int32
+        @ns_id = read_int32
+        @name_id = read_int32
+      end
+    end
+
+    class ResXmlStartNamespace < XMLChunkHeader
+    end
+
+    class ResXmlEndNamespace < XMLChunkHeader
+    end
+
+    class ResXmlStartElement < XMLChunkHeader
+      attr_reader :attrs
+
+      def parse
+        super
+        _attr_start = read_int16
+        _attr_size = read_int16
+        attr_count = read_int16
+
+        @id_index = read_int16
+        @class_index = read_int16
+        @style_index = read_int16
+
+        @attrs = attr_count.times.map do
+          Attr.new(*5.times.map { read_int32 })
+        end
+      end
+
+      class Attr < Struct.new(:ns_id, :name_id, :raw_value_id, :flags, :value); end
+    end
+
+    class ResXmlEndElement < XMLChunkHeader
+    end
+
+    class ResXmlCdata < XMLChunkHeader
+    end
+
+    class ResXmlLastChunk < XMLChunkHeader
+    end
+
+    class ResXMLResouceMap < ChunkHeader
+      attr_reader :map, :reverse_map
+      def parse
+        super
+        @map = {}
+        ((@size - 8)/ 4).times do |i|
+          @map[read_int32] = i
+        end
+        @reverse_map = Hash[@map.map { |k,v| [v,k] }]
+      end
+    end
+
     ######################################################################
     # @returns [Hash] { name(String) => value(ResTablePackage) }
-    attr_reader :packages
+    attr_reader :packages, :xml_doc
 
     def initialize(data)
       data.force_encoding(Encoding::ASCII_8BIT)
@@ -497,6 +558,7 @@ module Android
     def first_pkg
       @packages.first[1]
     end
+
     private
     def parse
       offset = 0
@@ -520,8 +582,138 @@ module Android
           pkg.global_string_pool = @string_pool
           offset += pkg.size
           @packages[pkg.name] = pkg
+        when 0x0100 #RES_XML_START_NAMESPACE_TYPE
+          xml = ResXmlStartNamespace.new(@data, offset)
+          offset += xml.size
+          @xml_doc = REXML::Document.new
+          @xml_doc << REXML::XMLDecl.new
+          @xml_nodes = [@xml_doc]
+          @xml_ns = [strings[xml.ns_id], strings[xml.name_id]]
+        when 0x0101 #  RES_XML_END_NAMESPACE_TYPE
+          xml = ResXmlEndNamespace.new(@data, offset)
+          offset += xml.size
+        when 0x0102 #  RES_XML_START_ELEMENT_TYPE
+          node = ResXmlStartElement.new(@data, offset)
+          offset += node.size
+
+          elem = REXML::Element.new(strings[node.name_id])
+
+          if @xml_ns
+            elem.add_namespace(*@xml_ns)
+            @xml_ns = nil
+          end
+
+          node.attrs.each do |attr|
+            elem.add_attribute(xml_get_key_name(attr), xml_convert_value(attr))
+          end
+          @xml_nodes.last.add_element(elem)
+          @xml_nodes << elem
+        when 0x0103 #  RES_XML_END_ELEMENT_TYPE
+          xml = ResXmlEndElement.new(@data, offset)
+          offset += xml.size
+          @xml_nodes.pop
+        when 0x0104 #  RES_XML_CDATA_TYPE
+          cdata = ResXmlCdata.new(@data, offset)
+          offset += cdata.size
+          text = REXML::Text.new(strings[cdata.ns_id])
+          @xml_nodes.last.text = text
+        when 0x017f #  RES_XML_LAST_CHUNK_TYPE
+          xml = ResXmlLastChunk.new(@data, offset)
+          offset += xml.size
+        when 0x0180 # RES_XML_RESOURCE_MAP_TYPE
+          @xml_map = ResXMLResouceMap.new(@data, offset)
+          offset += @xml_map.size
         else
           raise "chunk type error: type:%#04x" % type
+        end
+      end
+    end
+
+    def xml_get_key_name(attr)
+      case @xml_map && @xml_map.reverse_map[attr.name_id]
+      when 0x01010001 then 'android:label'
+      when 0x01010002 then 'android:icon'
+      when 0x01010003 then 'android:name'
+      when 0x01010006 then 'android:permission'
+      when 0x01010010 then 'android:exported'
+      when 0x0101001b then 'android:grantUriPermissions'
+      when 0x01010025 then 'android:resource'
+      when 0x0101000f then 'android:debuggable'
+      when 0x01010024 then 'android:value'
+      when 0x0101021b then 'android:versionCode'
+      when 0x0101021c then 'android:versionName'
+      when 0x0101001e then 'android:screenOrientation'
+      when 0x0101020c then 'android:minSdkVersion'
+      when 0x01010271 then 'android:maxSdkVersion'
+      when 0x01010227 then 'android:reqTouchScreen'
+      when 0x01010228 then 'android:reqKeyboardType'
+      when 0x01010229 then 'android:reqHardKeyboard'
+      when 0x0101022a then 'android:reqNavigation'
+      when 0x01010232 then 'android:reqFiveWayNav'
+      when 0x01010270 then 'android:targetSdkVersion'
+      when 0x01010272 then 'android:testOnly'
+      when 0x0101026c then 'android:anyDensity'
+      when 0x01010281 then 'android:glEsVersion'
+      when 0x01010284 then 'android:smallScreen'
+      when 0x01010285 then 'android:normalScreen'
+      when 0x01010286 then 'android:largeScreen'
+      when 0x010102bf then 'android:xlargeScreen'
+      when 0x0101028e then 'android:required'
+      when 0x010102b7 then 'android:installLocation'
+      when 0x010102ca then 'android:screenSize'
+      when 0x010102cb then 'android:screenDensity'
+      when 0x01010364 then 'android:requiresSmallestWidthDp'
+      when 0x01010365 then 'android:compatibleWidthLimitDp'
+      when 0x01010366 then 'android:largestWidthLimitDp'
+      when 0x010103a6 then 'android:publicKey'
+      when 0x010103e8 then 'android:category'
+      when 0x10103f2  then 'android:banner'
+      when 0x10103f4  then 'android:isgame'
+      else
+        unless attr.ns_id == 0xFFFFFFFF
+          ns = strings[attr.ns_id]
+          if ns && !ns.empty?
+            prefix = ns.sub(/.*\//,'')
+          end
+        end
+        [prefix, strings[attr.name_id]].compact.join(':')
+      end
+    end
+
+    VAL_TYPE_NULL              = 0
+    VAL_TYPE_REFERENCE         = 1
+    VAL_TYPE_ATTRIBUTE         = 2
+    VAL_TYPE_STRING            = 3
+    VAL_TYPE_FLOAT             = 4
+    VAL_TYPE_DIMENSION         = 5
+    VAL_TYPE_FRACTION          = 6
+    VAL_TYPE_INT_DEC           = 16
+    VAL_TYPE_INT_HEX           = 17
+    VAL_TYPE_INT_BOOLEAN       = 18
+    VAL_TYPE_INT_COLOR_ARGB8   = 28
+    VAL_TYPE_INT_COLOR_RGB8    = 29
+    VAL_TYPE_INT_COLOR_ARGB4   = 30
+    VAL_TYPE_INT_COLOR_RGB4    = 31
+
+    def xml_convert_value(attr)
+      unless attr.raw_value_id == 0xFFFFFFFF
+        strings[attr.raw_value_id]
+      else
+        type = attr.flags >> 24
+        val = attr.value
+        case type
+        when VAL_TYPE_NULL
+          nil
+        when VAL_TYPE_REFERENCE
+          "@%#x" % val # refered resource id.
+        when VAL_TYPE_INT_DEC
+          val
+        when VAL_TYPE_INT_HEX
+          "%#x" % val
+        when VAL_TYPE_INT_BOOLEAN
+          ((val == 0xFFFFFFFF) || (val==1)) ? true : false
+        else
+          "[%#x, flag=%#x]" % [val, flags]
         end
       end
     end

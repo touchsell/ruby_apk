@@ -84,13 +84,6 @@ describe Android::Apk do
         subject.should == mock_mani
       end
     end
-
-    context "when Manifest parse is failed" do
-      it 'should return nil' do
-        Android::Manifest.should_receive(:new).and_raise(Android::AXMLParser::ReadError)
-        subject.should be_nil
-      end
-    end
   end
 
   describe "#dex" do
@@ -127,15 +120,6 @@ describe Android::Apk do
   describe '#bindata' do
     specify 'encoding should be ASCII-8BIT' do
       subject.bindata.encoding.should eq Encoding::ASCII_8BIT 
-    end
-  end
-
-  describe '#resource' do
-    let(:mock_rsc) { mock(Android::Resource) }
-    subject { apk.resource }
-    it "should return manifest object" do
-      Android::Resource.should_receive(:new).and_return(mock_rsc)
-      subject.should == mock_rsc
     end
   end
 
