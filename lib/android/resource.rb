@@ -143,8 +143,6 @@ module Android
             end
           end
           return drawables
-        when 'attr'
-          binding.pry
         else
           nil
         end
