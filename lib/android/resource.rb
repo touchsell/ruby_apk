@@ -113,14 +113,11 @@ module Android
 
       def global_string_pool=(pool)
         @global_string_pool = pool
-        extract_res_strings
       end
 
       # find resource by resource id
       # @param [String] res_id (like '@0x7f010001' or '@string/key')
       # @param [Hash] opts option
-      # @option opts [String] :lang language code like 'ja', 'cn'...
-      # @option opts [String] :contry cantry code like 'jp'...
       # @raise [ArgumentError] invalid id format
       # @note
       #  This method only support string and drawable/mipmap resource for now.
@@ -134,34 +131,27 @@ module Android
 
         case type(tid) 
         when 'string'
-          return find_res_string(key, opts)
+          # Not dealing with configurations,
+          # configurations rules are complex:
+          #   ResTable::getEntry in libs/androidfw/ResourceTypes.cpp shows rules
+          # We'll just pick the first non-nil entry.
+          @types[tid].each do |type|
+            next unless type[key]
+            return @global_string_pool.strings[type[key].val.data]
+          end
+          raise NotFoundError
         when 'drawable','mipmap'
+          # Returning all possible configurations values.
           drawables = []
           @types[tid].each do |type|
-            unless type[key].nil?
-              drawables << @global_string_pool.strings[type[key].val.data]
-            end
+            next unless type[key]
+            drawables << @global_string_pool.strings[type[key].val.data]
           end
-          return drawables
+          return drawables.uniq
         else
           nil
         end
       end
-
-      def res_types
-      end
-      def find_res_string(key, opts={})
-        unless opts[:lang].nil?
-          string = @res_strings_lang[opts[:lang]]
-        end
-        unless opts[:contry].nil?
-          string = @res_strings_contry[opts[:contry]]
-        end
-        string = @res_strings_default if string.nil?
-        raise NotFoundError unless string.has_key? key
-        return string[key]
-      end
-      private :find_res_string
 
       # convert string resource id to fixnum
       # @param [String] res_id (like '@0x7f010001' or '@string/key')
@@ -254,36 +244,6 @@ module Android
       end
       private :parse
 
-      def extract_res_strings
-        @res_strings_lang = {}
-        @res_strings_contry = {}
-        begin
-          type = type_id('string')
-        rescue NotFoundError
-          return
-        end
-        @types[type_id('string')].each do |type|
-          str_hash  = {}
-          type.entry_count.times do |i|
-            entry = type[i]
-            if entry.nil?
-              str_hash[i] = nil
-            else
-              str_hash[i] = @global_string_pool.strings[type[i].val.data]
-            end
-          end
-          lang = type.config.locale_lang
-          contry = type.config.locale_contry
-          if lang.nil? && contry.nil?
-            @res_strings_default = str_hash
-          else
-            @res_strings_lang[lang] = str_hash unless lang.nil?
-            @res_strings_contry[contry] = str_hash unless contry.nil?
-          end
-        end
-      end
-      private :extract_res_strings
-
       def inspect
         "<ResTablePackage offset:%#08x, size:%#x, name:\"%s\">" % [@offset, @size, @name]
       end
@@ -339,15 +299,15 @@ module Android
     end
 
     class ResTableConfig < Chunk
-      attr_reader :size, :imei, :locale_lang, :locale_contry, :input
-      attr_reader :screen_input, :version, :screen_config
+      attr_reader :size, :imei, :locale_lang, :locale_country
+      attr_reader :screen_type, :input, :screen_input, :version, :screen_config
       def parse
         @size = read_int32
         @imei = read_int32
         la = @data_io.read(2)
         @locale_lang = la unless la == "\x00\x00"
         cn = @data_io.read(2)
-        @locale_contry = cn unless cn == "\x00\x00"
+        @locale_country = cn unless cn == "\x00\x00"
         @screen_type = read_int32
         @input = read_int32
         @screen_input = read_int32
@@ -355,7 +315,8 @@ module Android
         @screen_config = read_int32
       end
       def inspect
-        "<ResTableConfig size:#{@size}, imei:#{@imei}, la:'#{@locale_lang}' cn:'#{@locale_contry}'"
+        "<ResTableConfig size:#{@size}, imei:#{@imei}, la:'#{@locale_lang}' cn:'#{@locale_country}' " +
+          "screen_type:#{@screen_type} input:#{@input} screen_input:#{@screen_input} version:#{@version} screen_config:#{@screen_config}"
       end
     end
 
@@ -526,8 +487,6 @@ module Android
     # find resource by resource id
     # @param [String] res_id (like '@0x7f010001' or '@string/key')
     # @param [Hash] opts option
-    # @option opts [String] :lang language code like 'ja', 'cn'...
-    # @option opts [String] :contry cantry code like 'jp'...
     # @raise [ArgumentError] invalid id format
     # @note
     #  This method only support string resource for now.

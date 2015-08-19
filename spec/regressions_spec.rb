@@ -1,7 +1,9 @@
 require 'spec_helper'
 
 describe 'regressions' do
-  let(:manifest) { Android::Manifest.new(File.open(manifest_file, 'rb').read) }
+  let(:resource_file) { nil }
+  let(:resource) { Android::Resource.new(File.open(resource_file, 'rb').read) if resource_file }
+  let(:manifest) { Android::Manifest.new(File.open(manifest_file, 'rb').read, resource) }
   let(:metadata) { manifest.metadata }
 
   context 'with periscope' do
@@ -19,6 +21,16 @@ describe 'regressions' do
     it 'finds the version properly' do
       metadata['manifest']['version_name'].should == "14.0.0.17.13"
       metadata['manifest']['version_code'].should == 3584822
+    end
+  end
+
+  context 'with sears' do
+    let(:manifest_file) { "spec/data/com.sears.android-AndroidManifest.xml" }
+    let(:resource_file) { "spec/data/com.sears.android-resources.arsc" }
+
+    it 'finds the version properly' do
+      metadata['manifest']['version_name'].should == "6.2.22"
+      metadata['manifest']['version_code'].should == 143
     end
   end
 end
