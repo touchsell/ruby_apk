@@ -33,4 +33,14 @@ describe 'regressions' do
       metadata['manifest']['version_code'].should == 143
     end
   end
+
+  context 'with free gift cards' do
+    let(:manifest_file) { "spec/data/Free-Gift-Cards_2.1.6_apk-dl.com-AndroidManifest.xml" }
+    let(:resource_file) { "spec/data/Free-Gift-Cards_2.1.6_apk-dl.com-resources.arsc" }
+
+    it 'finds the version properly' do
+      metadata['manifest']['version_name'].should == "2.1.6"
+      metadata['manifest']['version_code'].should == 19
+    end
+  end
 end

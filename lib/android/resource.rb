@@ -637,20 +637,48 @@ module Android
       end
     end
 
-    VAL_TYPE_NULL              = 0
-    VAL_TYPE_REFERENCE         = 1
-    VAL_TYPE_ATTRIBUTE         = 2
-    VAL_TYPE_STRING            = 3
-    VAL_TYPE_FLOAT             = 4
-    VAL_TYPE_DIMENSION         = 5
-    VAL_TYPE_FRACTION          = 6
-    VAL_TYPE_INT_DEC           = 16
-    VAL_TYPE_INT_HEX           = 17
-    VAL_TYPE_INT_BOOLEAN       = 18
-    VAL_TYPE_INT_COLOR_ARGB8   = 28
-    VAL_TYPE_INT_COLOR_RGB8    = 29
-    VAL_TYPE_INT_COLOR_ARGB4   = 30
-    VAL_TYPE_INT_COLOR_RGB4    = 31
+    module Value
+      # From include/androidfw/ResourceTypes.h
+      # ----------------------------------------------------------------------
+      TYPE_NULL = 0x00
+      # The 'data' holds a ResTable_ref, a reference to another resource
+      # table entry.
+      TYPE_REFERENCE = 0x01
+      # The 'data' holds an attribute resource identifier.
+      TYPE_ATTRIBUTE = 0x02
+      # The 'data' holds an index into the containing resource table's
+      # global value string pool.
+      TYPE_STRING = 0x03
+      # The 'data' holds a single-precision floating point number.
+      TYPE_FLOAT = 0x04
+      # The 'data' holds a complex number encoding a dimension value,
+      # such as "100in".
+      TYPE_DIMENSION = 0x05
+      # The 'data' holds a complex number encoding a fraction of a
+      # container.
+      TYPE_FRACTION = 0x06
+      # The 'data' holds a dynamic ResTable_ref, which needs to be
+      # resolved before it can be used like a TYPE_REFERENCE.
+      TYPE_DYNAMIC_REFERENCE = 0x07
+      # Beginning of integer flavors...
+      TYPE_FIRST_INT = 0x10
+      # The 'data' is a raw integer value of the form n..n.
+      TYPE_INT_DEC = 0x10
+      # The 'data' is a raw integer value of the form 0xn..n.
+      TYPE_INT_HEX = 0x11
+      # The 'data' is either 0 or 1, for input "false" or "true" respectively.
+      TYPE_INT_BOOLEAN = 0x12
+      # Beginning of color integer flavors...
+      TYPE_FIRST_COLOR_INT = 0x1c
+      # The 'data' is a raw integer value of the form #aarrggbb.
+      TYPE_INT_COLOR_ARGB8 = 0x1c
+      # The 'data' is a raw integer value of the form #rrggbb.
+      TYPE_INT_COLOR_RGB8 = 0x1d
+      # The 'data' is a raw integer value of the form #argb.
+      TYPE_INT_COLOR_ARGB4 = 0x1e
+      # The 'data' is a raw integer value of the form #rgb.
+      TYPE_INT_COLOR_RGB4 = 0x1f
+    end
 
     def xml_convert_value(attr)
       unless attr.raw_value_id == 0xFFFFFFFF
@@ -659,18 +687,18 @@ module Android
         type = attr.flags >> 24
         val = attr.value
         case type
-        when VAL_TYPE_NULL
+        when Value::TYPE_NULL
           nil
-        when VAL_TYPE_REFERENCE
+        when Value::TYPE_REFERENCE
           "@%#x" % val # refered resource id.
-        when VAL_TYPE_INT_DEC
+        when Value::TYPE_INT_DEC
           val
-        when VAL_TYPE_INT_HEX
+        when Value::TYPE_INT_HEX
           "%#x" % val
-        when VAL_TYPE_INT_BOOLEAN
+        when Value::TYPE_INT_BOOLEAN
           ((val == 0xFFFFFFFF) || (val==1)) ? true : false
         else
-          "[%#x, flag=%#x]" % [val, flags]
+          "[%#x, flag=%#x]" % [val, attr.flags]
         end
       end
     end
