@@ -43,4 +43,14 @@ describe 'regressions' do
       metadata['manifest']['version_code'].should == 19
     end
   end
+
+  context 'with zebpay' do
+    let(:manifest_file) { "spec/data/zebpay.Application-1-AndroidManifest.xml" }
+    let(:resource_file) { "spec/data/zebpay.Application-1-resources.arsc" }
+
+    it 'finds the version properly' do
+      metadata['manifest']['version_name'].should == "1.0.42"
+      metadata['manifest']['version_code'].should == 146
+    end
+  end
 end

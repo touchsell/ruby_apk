@@ -468,6 +468,9 @@ module Android
 
     def initialize(data)
       data.force_encoding(Encoding::ASCII_8BIT)
+      @xml_doc = REXML::Document.new
+      @xml_doc << REXML::XMLDecl.new
+      @xml_nodes = [@xml_doc]
       @data = data
       parse()
     end
@@ -542,9 +545,6 @@ module Android
         when 0x0100 #RES_XML_START_NAMESPACE_TYPE
           xml = ResXmlStartNamespace.new(@data, offset)
           offset += xml.size
-          @xml_doc = REXML::Document.new
-          @xml_doc << REXML::XMLDecl.new
-          @xml_nodes = [@xml_doc]
           @xml_ns = [strings[xml.ns_id], strings[xml.name_id]]
         when 0x0101 #  RES_XML_END_NAMESPACE_TYPE
           xml = ResXmlEndNamespace.new(@data, offset)
