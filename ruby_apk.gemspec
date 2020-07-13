@@ -6,12 +6,12 @@
 
 Gem::Specification.new do |s|
   s.name = "ruby_apk"
-  s.version = "0.7.1"
+  s.version = "0.7.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["SecureBrain"]
-  s.date = "2014-11-26"
+  s.date = "2020-07-13"
   s.description = "static analysis tool for android apk"
   s.email = "info@securebrain.co.jp"
   s.extra_rdoc_files = [
@@ -27,72 +27,23 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
-    "lib/android/apk.rb",
-    "lib/android/axml_parser.rb",
-    "lib/android/dex.rb",
-    "lib/android/dex/access_flag.rb",
-    "lib/android/dex/dex_object.rb",
-    "lib/android/dex/info.rb",
-    "lib/android/dex/utils.rb",
-    "lib/android/layout.rb",
-    "lib/android/manifest.rb",
-    "lib/android/resource.rb",
-    "lib/android/utils.rb",
-    "lib/ruby_apk.rb",
     "ruby_apk.gemspec",
-    "spec/apk_spec.rb",
-    "spec/axml_parser_spec.rb",
-    "spec/data/sample.apk",
-    "spec/data/sample_AndroidManifest.xml",
-    "spec/data/sample_classes.dex",
-    "spec/data/sample_resources.arsc",
-    "spec/data/sample_resources_utf16.arsc",
-    "spec/data/str_resources.arsc",
-    "spec/dex/access_flag_spec.rb",
-    "spec/dex/dex_object_spec.rb",
-    "spec/dex/info_spec.rb",
-    "spec/dex/utils_spec.rb",
-    "spec/dex_spec.rb",
-    "spec/layout_spec.rb",
-    "spec/manifest_spec.rb",
-    "spec/resource_spec.rb",
-    "spec/ruby_apk_spec.rb",
-    "spec/spec_helper.rb",
-    "spec/utils_spec.rb"
+    *Dir["lib/**/*"],
+    *Dir["spec/**/*"],
   ]
   s.homepage = "https://github.com/SecureBrain/ruby_apk/"
   s.licenses = ["MIT"]
   s.rubygems_version = "2.2.2"
   s.summary = "static analysis tool for android apk"
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
-
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<rubyzip>, ["= 1.1.6"])
-      s.add_development_dependency(%q<rspec>, [">= 2.11.0", "~> 2.11"])
-      s.add_development_dependency(%q<bundler>, [">= 1.1.5", "~> 1.1"])
-      s.add_development_dependency(%q<jeweler>, [">= 1.8.7", "~> 1.8"])
-      s.add_development_dependency(%q<yard>, ["~> 0"])
-      s.add_development_dependency(%q<redcarpet>, ["~> 3.2"])
-      s.add_development_dependency(%q<simplecov>, ["~> 0"])
-    else
-      s.add_dependency(%q<rubyzip>, ["= 1.1.6"])
-      s.add_dependency(%q<rspec>, [">= 2.11.0", "~> 2.11"])
-      s.add_dependency(%q<bundler>, [">= 1.1.5", "~> 1.1"])
-      s.add_dependency(%q<jeweler>, [">= 1.8.7", "~> 1.8"])
-      s.add_dependency(%q<yard>, ["~> 0"])
-      s.add_dependency(%q<redcarpet>, ["~> 3.2"])
-      s.add_dependency(%q<simplecov>, ["~> 0"])
-    end
-  else
-    s.add_dependency(%q<rubyzip>, ["= 1.1.6"])
-    s.add_dependency(%q<rspec>, [">= 2.11.0", "~> 2.11"])
-    s.add_dependency(%q<bundler>, [">= 1.1.5", "~> 1.1"])
-    s.add_dependency(%q<jeweler>, [">= 1.8.7", "~> 1.8"])
-    s.add_dependency(%q<yard>, ["~> 0"])
-    s.add_dependency(%q<redcarpet>, ["~> 3.2"])
-    s.add_dependency(%q<simplecov>, ["~> 0"])
-  end
+  s.specification_version = 4
+  s.add_runtime_dependency(%q<rubyzip>, [">= 1.3.0", "~> 1.3"])
+  s.add_development_dependency(%q<rspec>, [">= 2.11.0", "~> 2.11"])
+  s.add_development_dependency(%q<bundler>, [">= 2.1.4", "~> 2.1"])
+  s.add_development_dependency(%q<jeweler>, [">= 2.3.9", "~> 2.3"])
+  s.add_development_dependency(%q<yard>, ["~> 0"])
+  s.add_development_dependency(%q<redcarpet>, ["~> 3.2"])
+  s.add_development_dependency(%q<simplecov>, ["~> 0"])
+  s.add_development_dependency(%q<pry>, ["~> 0"])
 end
 
